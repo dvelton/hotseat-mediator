@@ -1,5 +1,4 @@
 # hotseat-mediator
-A simple program for resolving complex legal disputes.
 
 This program is designed to resolve legal disputes both simple and complex.
 In real-world litigation, countless cases do not settle as fast as they 
