@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotseat Mediator</title>
+  <style>
+    :root {
+      --bg: #f8f7f4;
+      --card-bg: #ffffff;
+      --primary: #2c3e50;
+      --accent: #1a7a4c;
+      --accent-hover: #15613c;
+      --reject: #c0392b;
+      --reject-hover: #a93226;
+      --muted: #7f8c8d;
+      --border: #ddd;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      background: var(--bg);
+      color: var(--primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      padding: 2rem 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .screen.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .card p {
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      margin-top: 1rem;
+    }
+
+    label:first-of-type { margin-top: 0; }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .input-prefix {
+      position: relative;
+    }
+
+    .input-prefix::before {
+      content: '$';
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    .input-prefix input {
+      padding-left: 1.6rem;
+    }
+
+    .error-msg {
+      color: var(--reject);
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+      display: none;
+    }
+
+    .error-msg.visible { display: block; }
+
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.8rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-accept {
+      background: var(--accent);
+      color: #fff;
+      min-width: 140px;
+    }
+
+    .btn-accept:hover { background: var(--accent-hover); }
+
+    .btn-reject {
+      background: var(--reject);
+      color: #fff;
+      min-width: 140px;
+    }
+
+    .btn-reject:hover { background: var(--reject-hover); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+    }
+
+    .btn-secondary:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .privacy-notice {
+      background: #eaf5f0;
+      border-left: 4px solid var(--accent);
+      padding: 0.8rem 1rem;
+      font-size: 0.85rem;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 1.5rem;
+      color: #2c3e50;
+    }
+
+    .privacy-notice strong { display: block; margin-bottom: 0.2rem; }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 3px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    .progress-text {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .handoff-screen {
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+
+    .handoff-screen .icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .handoff-screen h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .handoff-screen p {
+      color: var(--muted);
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .amount-display {
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin: 1.5rem 0;
+      color: var(--primary);
+    }
+
+    .party-label {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .question-text {
+      text-align: center;
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .result-screen {
+      text-align: center;
+      padding: 2rem 0;
+    }
+
+    .result-screen .icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .result-screen h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .result-screen p {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .preview-summary {
+      background: #f0f0ec;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      text-align: center;
+      color: var(--primary);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      .container { padding: 1.25rem 1rem; }
+      h1 { font-size: 1.4rem; }
+      .card { padding: 1.25rem; }
+      .amount-display { font-size: 1.6rem; }
+      .btn { padding: 0.7rem 1.2rem; font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Hotseat Mediator</h1>
+  <p class="subtitle">A structured settlement negotiation tool</p>
+
+  <!-- SCREEN 1: Welcome & Setup -->
+  <div id="screen-setup" class="screen active">
+    <div class="privacy-notice">
+      <strong>&#128274; Your data stays private.</strong>
+      All negotiation data remains in your browser. Nothing is sent to any server.
+    </div>
+
+    <div class="card">
+      <h2>How It Works</h2>
+      <p>
+        This tool lets two parties explore whether there is a dollar amount at which both would settle &mdash;
+        <strong>without either side losing bargaining position</strong>.
+      </p>
+      <p>
+        The tool steps through a range of dollar amounts. Each party privately indicates whether they would
+        accept or reject each amount. If both accept the same amount, the tool reveals the match. If one
+        accepts and the other rejects, <strong>neither side learns the other's answer</strong>.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Setup</h2>
+
+      <label for="party1-name">Party 1 label</label>
+      <input type="text" id="party1-name" value="Plaintiff" placeholder="e.g., Plaintiff">
+
+      <label for="party2-name">Party 2 label</label>
+      <input type="text" id="party2-name" value="Defendant" placeholder="e.g., Defendant">
+
+      <label for="start-amount">Starting dollar amount</label>
+      <div class="input-prefix">
+        <input type="number" id="start-amount" placeholder="e.g., 10000" min="0" step="1">
+      </div>
+
+      <label for="end-amount">Ending dollar amount</label>
+      <div class="input-prefix">
+        <input type="number" id="end-amount" placeholder="e.g., 100000" min="0" step="1">
+      </div>
+
+      <label for="interval">Interval (step size)</label>
+      <div class="input-prefix">
+        <input type="number" id="interval" placeholder="e.g., 5000" min="1" step="1">
+      </div>
+
+      <div id="setup-error" class="error-msg"></div>
+
+      <div id="range-preview" class="preview-summary" style="display:none;"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="startNegotiation()">Begin Negotiation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: Handoff -->
+  <div id="screen-handoff" class="screen">
+    <div class="card handoff-screen">
+      <div class="icon">&#128257;</div>
+      <h2>Pass the device to <span id="handoff-party"></span></h2>
+      <p>Make sure the other party is not looking at the screen.<br>Press the button below when <span id="handoff-party2"></span> is ready.</p>
+      <button class="btn btn-primary" onclick="showQuestion()">I'm Ready</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: Question -->
+  <div id="screen-question" class="screen">
+    <div class="progress-bar"><div id="progress-fill" class="progress-bar-fill"></div></div>
+    <div id="progress-text" class="progress-text"></div>
+
+    <div class="card">
+      <div id="current-party" class="party-label"></div>
+      <div class="question-text">Would you accept settlement at:</div>
+      <div id="current-amount" class="amount-display"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-accept" onclick="respond(true)">&#10003; Accept</button>
+        <button class="btn btn-reject" onclick="respond(false)">&#10007; Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: Result -->
+  <div id="screen-result" class="screen">
+    <div class="card result-screen">
+      <div id="result-icon" class="icon"></div>
+      <h2 id="result-heading"></h2>
+      <p id="result-message"></p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="restart()">Start Over</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="https://github.com/dvelton/hotseat-mediator" target="_blank" rel="noopener">Hotseat Mediator</a> &mdash; Open source, MIT Licensed
+</footer>
+
+<script>
+  // State
+  let party1 = 'Plaintiff';
+  let party2 = 'Defendant';
+  let startAmount = 0;
+  let endAmount = 0;
+  let interval = 0;
+  let amounts = [];
+  let currentIndex = 0;
+  let currentPartyIs1 = true;
+  let party1Response = null;
+
+  function fmt(n) {
+    return '$' + Number(n).toLocaleString('en-US');
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+    requestAnimationFrame(function() {
+      document.getElementById(id).classList.add('active');
+    });
+  }
+
+  // Live range preview
+  function updatePreview() {
+    var s = parseInt(document.getElementById('start-amount').value);
+    var e = parseInt(document.getElementById('end-amount').value);
+    var i = parseInt(document.getElementById('interval').value);
+    var preview = document.getElementById('range-preview');
+
+    if (!isNaN(s) && !isNaN(e) && !isNaN(i) && i > 0 && e > s) {
+      var steps = Math.floor((e - s) / i) + 1;
+      preview.style.display = 'block';
+      preview.textContent = 'This will check ' + steps + ' amount' + (steps !== 1 ? 's' : '') + ' from ' + fmt(s) + ' to ' + fmt(e);
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+
+  document.getElementById('start-amount').addEventListener('input', updatePreview);
+  document.getElementById('end-amount').addEventListener('input', updatePreview);
+  document.getElementById('interval').addEventListener('input', updatePreview);
+
+  function startNegotiation() {
+    var errorEl = document.getElementById('setup-error');
+    errorEl.classList.remove('visible');
+
+    party1 = document.getElementById('party1-name').value.trim() || 'Plaintiff';
+    party2 = document.getElementById('party2-name').value.trim() || 'Defendant';
+    startAmount = parseInt(document.getElementById('start-amount').value);
+    endAmount = parseInt(document.getElementById('end-amount').value);
+    interval = parseInt(document.getElementById('interval').value);
+
+    if (isNaN(startAmount) || isNaN(endAmount) || isNaN(interval)) {
+      errorEl.textContent = 'Please fill in all dollar amount fields with valid numbers.';
+      errorEl.classList.add('visible');
+      return;
+    }
+    if (startAmount < 0 || endAmount < 0) {
+      errorEl.textContent = 'Dollar amounts cannot be negative.';
+      errorEl.classList.add('visible');
+      return;
+    }
+    if (endAmount <= startAmount) {
+      errorEl.textContent = 'The ending amount must be greater than the starting amount.';
+      errorEl.classList.add('visible');
+      return;
+    }
+    if (interval <= 0) {
+      errorEl.textContent = 'The interval must be a positive number.';
+      errorEl.classList.add('visible');
+      return;
+    }
+    if (interval > (endAmount - startAmount)) {
+      errorEl.textContent = 'The interval cannot be larger than the range between starting and ending amounts.';
+      errorEl.classList.add('visible');
+      return;
+    }
+
+    amounts = [];
+    for (var a = startAmount; a <= endAmount; a += interval) {
+      amounts.push(a);
+    }
+
+    currentIndex = 0;
+    currentPartyIs1 = true;
+    party1Response = null;
+
+    showHandoff(party1);
+  }
+
+  function showHandoff(partyName) {
+    document.getElementById('handoff-party').textContent = partyName;
+    document.getElementById('handoff-party2').textContent = partyName;
+    showScreen('screen-handoff');
+  }
+
+  function showQuestion() {
+    var totalSteps = amounts.length;
+    var pct = ((currentIndex + 1) / totalSteps) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent =
+      'Amount ' + (currentIndex + 1) + ' of ' + totalSteps;
+
+    var partyName = currentPartyIs1 ? party1 : party2;
+    document.getElementById('current-party').textContent = partyName;
+    document.getElementById('current-amount').textContent = fmt(amounts[currentIndex]);
+
+    showScreen('screen-question');
+  }
+
+  function respond(accepted) {
+    if (currentPartyIs1) {
+      party1Response = accepted;
+      currentPartyIs1 = false;
+      showHandoff(party2);
+    } else {
+      evaluateRound(party1Response, accepted);
+    }
+  }
+
+  function evaluateRound(p1Accepted, p2Accepted) {
+    if (p1Accepted && p2Accepted) {
+      showResult(true, amounts[currentIndex]);
+      return;
+    }
+
+    currentIndex++;
+    if (currentIndex >= amounts.length) {
+      showResult(false, null);
+      return;
+    }
+
+    currentPartyIs1 = true;
+    party1Response = null;
+    showHandoff(party1);
+  }
+
+  function showResult(settled, amount) {
+    if (settled) {
+      document.getElementById('result-icon').textContent = '\uD83E\uDD1D';
+      document.getElementById('result-heading').textContent = 'Settlement Reached!';
+      document.getElementById('result-message').textContent =
+        'Both sides are willing to settle the case at ' + fmt(amount) + '.';
+    } else {
+      document.getElementById('result-icon').textContent = '\u2696\uFE0F';
+      document.getElementById('result-heading').textContent = 'No Common Ground';
+      document.getElementById('result-message').textContent =
+        'Unfortunately, it does not appear the parties share a settlement amount within the specified range.';
+    }
+    showScreen('screen-result');
+  }
+
+  function restart() {
+    document.getElementById('party1-name').value = 'Plaintiff';
+    document.getElementById('party2-name').value = 'Defendant';
+    document.getElementById('start-amount').value = '';
+    document.getElementById('end-amount').value = '';
+    document.getElementById('interval').value = '';
+    document.getElementById('range-preview').style.display = 'none';
+    document.getElementById('setup-error').classList.remove('visible');
+    showScreen('screen-setup');
+  }
+</script>
+
+</body>
+</html>

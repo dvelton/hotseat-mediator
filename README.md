@@ -1,54 +1,51 @@
 # hotseat-mediator
 
-This program is designed to resolve legal disputes both simple and complex.
-In real-world litigation, countless cases do not settle as fast as they 
-can or should because of a straightforward rule of negotiation: parties' need 
-to maintain bargaining position. 
+**[▶ Try it online](https://dvelton.github.io/hotseat-mediator/)**
 
-For example, a Plaintiff who might be willing to accept $50,000 in full
-resolution of his or her case is unlikely to indicate this willingness to a 
-Defendant, knowing that Defendant will view this expressed $50,000 figure 
-as a ceiling and simply negotiate down from there. The 
-realities of negotiation require a Plaintiff aiming for $50,000 to 
-begin by shooting much higher (for example, $100,000 or $150,000) in hopes of 
-ending up at the desired amount. This method allows for Plaintiff to maintain
-bargaining position. However, such artificially inflated amounts are roadblocks
-to settlement. Perhaps Defendant would have been willing to pay $50,000, but 
-to maintain his or her own bargaining position, Defendant must refrain from 
-indicating this willingness in response to Plaintiff's inflated demands. Instead,
-Defendant must stick to artificially low offers initially (such as $5,000 or $10,000).
-In the above manner, parties inevitably end up at an impasse that can take months
-or years and countless resources to break through. Even in a situation where 
-both Plaintiff and Defendant would secretly be willing to settle a case for $50,000,
-the case is not settled because the rules of negotiation encourage both Plaintiff 
-and Defendant to maintain their respective bargaining positions. Plaintiff ends up
-viewing Defendant as stubborn and unreasonable (because of Defendant's artificially low offers),
-and Defendant views Plaintiff as wildly unrealistic (because of Plaintiff's artificially high demands).
+A structured settlement negotiation tool that helps two parties find common ground — without losing bargaining position.
 
-This program creates information asymmetry between the parties and is 
-a path toward breaking through the impasse. It is effectively a structured
-negotiation that allows both Plaintiff and Defendant to indicate willingness
-to settle at a certain number but WITHOUT the fear of loss of bargaining position! 
+## The Problem
 
-It does this as follows: Running through numbers in range(x, y, z), 
-the program separately (via hotseat) asks Plaintiff and Defendant if each 
-is willing to settle at a particular number. If both parties indicate "No" then
-the program moves to the next number at z interval and asks the same question.
-If both parties indicate "Yes" to a number then the program informs the parties that both
-are willing to settle at the particular number. However, if one party indicates
-"Yes" and the other party indicates "No" then the program moves on to the next
-line but DOES NOT DISCLOSE to the "No" party that the other party had said "Yes."
-In other words: a party can indicate "Yes" to a particular number without losing
-bargaining position because if the other side says "No" to that number, the "No" side will
-never know that there was even a "Yes" response to that number at all.
+In real-world litigation, countless cases fail to settle as quickly as they should because of a fundamental rule of negotiation: both sides must maintain bargaining position.
 
-Finally, because of the nature of this program, parties have an incentive to be
-honest with themselves. If they truly want to see if there is a number at which
-both sides can settle, they will not posture and artificially inflate or lower 
-their demands/offers out of fear of missing a possible window of "Yes" overlap 
-and thus settlement.  
+A Plaintiff willing to accept $50,000 can't say so — the Defendant would treat it as a ceiling and negotiate down. A Defendant willing to pay $50,000 can't say so either — the Plaintiff would treat it as a floor and push higher. Both sides posture with artificial numbers, creating an impasse that can take months or years to break through.
 
-Thanks for reading this far. After practicing law and running a civil litigation
-practice in Silicon Valley for nearly a decade, I started to study some programming
-for fun. This is the first product. If you have any tips or improvements, 
-please feel free to email me.
+## How It Works
+
+Hotseat Mediator creates **information asymmetry** that breaks through the impasse:
+
+1. **Set a range** — Both parties agree on a starting amount, ending amount, and interval
+2. **Take turns privately** — At each dollar amount, each party indicates Accept or Reject on the same device (hotseat-style), without the other party watching
+3. **Reveal only matches** — If both say Accept, the tool announces the settlement amount. If one says Accept and the other says Reject, the Reject party **never learns** the other side accepted
+
+Because a party can say "Yes" without risking their bargaining position, both sides have an incentive to be honest rather than posture.
+
+## Two Ways to Use It
+
+### 🌐 Web Version (Recommended)
+
+Visit **[dvelton.github.io/hotseat-mediator](https://dvelton.github.io/hotseat-mediator/)** in any browser. Works on phones and tablets — perfect for passing a device back and forth. No installation required.
+
+Features:
+- Custom party labels (not just Plaintiff/Defendant)
+- Input validation and range preview
+- Progress indicator
+- Privacy-first: all data stays in your browser
+
+### 🐍 Python CLI Version
+
+The original command-line version is still available:
+
+```bash
+python hotseat_mediator.py
+```
+
+Requires Python 3. Follow the on-screen prompts to set up the range and take turns.
+
+## Background
+
+After practicing law and running a civil litigation practice in Silicon Valley for nearly a decade, I started learning programming for fun. This was the first project — born from watching too many cases stall over negotiation dynamics that a simple algorithm could resolve.
+
+## License
+
+MIT
